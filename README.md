@@ -4,24 +4,25 @@ A Databricks Asset Bundle that gathers usage, quality, configuration and cost me
 
 ```mermaid
 flowchart LR
-    subgraph SRC["Sources"]
-        API["Genie REST API<br/><small>spaces · config · ACLs · conversations<br/>messages · comments · benchmark evals · users</small>"]
-        AUD["system.access.audit<br/><small>aibiGenie · genieChat</small>"]
-        QH["system.query.history<br/><small>query_source.genie_space_id</small>"]
-        BIL["system.billing.usage<br/><small>GENIE product · SQL warehouses</small>"]
-    end
+    API["Genie REST API<br/>spaces, config, ACLs,<br/>conversations, messages,<br/>comments, evals, users"]
+    AUD["system.access.audit<br/>aibiGenie, genieChat"]
+    QH["system.query.history<br/>Genie SQL statements"]
+    BIL["system.billing.usage<br/>Genie + warehouse cost"]
 
     subgraph JOB["Daily serverless job"]
         H["01_harvest_genie_api"]
         G["02_build_gold"]
     end
 
-    API --> H --> BR[("genie_* tables<br/><small>bronze</small>")]
-    BR --> G
+    BR[("genie_* tables<br/>bronze")]
+    GO[("g_* tables<br/>gold")]
+    D["AI/BI dashboard<br/>9 pages"]
+
+    API --> H --> BR --> G
     AUD --> G
     QH --> G
     BIL --> G
-    G --> GO[("g_* tables<br/><small>gold</small>")] --> D["AI/BI dashboard<br/><small>9 pages</small>"]
+    G --> GO --> D
 ```
 
 ![Genie Observability — Overview](docs/overview.png)
