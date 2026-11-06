@@ -1,0 +1,8 @@
+resources:
+  dashboards:
+    genie_observability_dashboard:
+      display_name: Genie Observability
+      file_path: ../src/dashboards/genie_observability.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${var.schema}

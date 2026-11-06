@@ -1,0 +1,33 @@
+resources:
+  jobs:
+    genie_observability_job:
+      name: Genie Observability — harvest & gold refresh
+      description: Harvests Genie REST API data (spaces, config, ACLs, conversations, messages, comments, benchmark evals) and rebuilds gold tables joined with system tables.
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: UTC
+        pause_status: ${var.schedule_pause_status}
+      max_concurrent_runs: 1
+      timeout_seconds: 14400
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: full_refresh
+          default: "false"
+      tasks:
+        - task_key: harvest_genie_api
+          notebook_task:
+            notebook_path: ../src/01_harvest_genie_api.py
+            base_parameters:
+              lookback_days: ${var.lookback_days}
+        - task_key: build_gold
+          depends_on:
+            - task_key: harvest_genie_api
+          notebook_task:
+            notebook_path: ../src/02_build_gold.py
+            base_parameters:
+              system_lookback_days: ${var.system_lookback_days}
+      tags:
+        solution: genie-observability

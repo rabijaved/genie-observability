@@ -1,0 +1,46 @@
+# Genie Observability — reusable Databricks Asset Bundle
+#
+# Nothing workspace-specific is stored in this file. Supply your values in ONE of these ways
+# (see README → "Configure"):
+#   1. --var flags:        databricks bundle deploy -t prod --var catalog=main --var warehouse_id=1234abcd5678efgh
+#   2. env vars:           export BUNDLE_VAR_catalog=main BUNDLE_VAR_warehouse_id=1234abcd5678efgh
+#   3. overrides file:     .databricks/bundle/<target>/variable-overrides.json   (git-ignored)
+# The workspace comes from your CLI profile:  -p <profile>
+bundle:
+  name: genie-observability
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Existing Unity Catalog catalog for the Genie observability tables
+  schema:
+    description: Schema the job writes to and the dashboard reads from (created if missing)
+    default: genie_observability
+  warehouse_id:
+    description: SQL warehouse ID the dashboard runs on (SQL Warehouses → your warehouse → Overview → ID)
+  lookback_days:
+    description: Re-fetch messages for conversations created in the last N days on each incremental run
+    default: "7"
+  system_lookback_days:
+    description: Days of system-table history (audit, query history, billing) materialised into gold tables
+    default: "180"
+  schedule_pause_status:
+    description: UNPAUSED to run the daily schedule, PAUSED to disable it
+    default: UNPAUSED
+
+targets:
+  # Personal / test deployment: resources are prefixed "[dev <you>]" and the schedule is paused.
+  dev:
+    default: true
+    mode: development
+
+  # Shared deployment: stable names, schedule active.
+  # Optional: run the job as a service principal that has CAN MANAGE on your Genie spaces:
+  #   run_as:
+  #     service_principal_name: <application-id>
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
