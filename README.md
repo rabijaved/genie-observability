@@ -2,14 +2,26 @@
 
 A Databricks Asset Bundle that gathers usage, quality, configuration and cost metrics for **Genie spaces (Genie Agents)** and **Genie One** into Unity Catalog. It also ships a 9-page AI/BI dashboard. You can deploy it to any workspace with a single command.
 
-```
-            ┌──────────────── daily serverless job ─────────────────┐
- Genie REST API ──► 01_harvest_genie_api ──► genie_* tables ──┐
- (spaces, config, ACLs, conversations, messages,              │
-  comments, benchmark evals, users)                           ├─► 02_build_gold ──► g_* tables ──► AI/BI dashboard
- system.access.audit (aibiGenie, genieChat) ─────────────────┤
- system.query.history (query_source.genie_space_id) ─────────┤
- system.billing.usage (GENIE product, warehouses) ───────────┘
+```mermaid
+flowchart LR
+    subgraph SRC["Sources"]
+        API["Genie REST API<br/><small>spaces · config · ACLs · conversations<br/>messages · comments · benchmark evals · users</small>"]
+        AUD["system.access.audit<br/><small>aibiGenie · genieChat</small>"]
+        QH["system.query.history<br/><small>query_source.genie_space_id</small>"]
+        BIL["system.billing.usage<br/><small>GENIE product · SQL warehouses</small>"]
+    end
+
+    subgraph JOB["Daily serverless job"]
+        H["01_harvest_genie_api"]
+        G["02_build_gold"]
+    end
+
+    API --> H --> BR[("genie_* tables<br/><small>bronze</small>")]
+    BR --> G
+    AUD --> G
+    QH --> G
+    BIL --> G
+    G --> GO[("g_* tables<br/><small>gold</small>")] --> D["AI/BI dashboard<br/><small>9 pages</small>"]
 ```
 
 ![Genie Observability — Overview](docs/overview.png)
